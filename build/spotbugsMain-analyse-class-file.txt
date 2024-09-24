@@ -1,2 +1,0 @@
-C:\Users\Admin\Documents\SAAIPlayerData\build\classes\java\main\com\hearty\playerchatlistener\PlayerChatListener.class
-C:\Users\Admin\Documents\SAAIPlayerData\build\classes\java\main\com\hearty\playerdataaddon\PlayerDataAddon.class
