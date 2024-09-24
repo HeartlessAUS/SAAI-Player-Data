@@ -1,0 +1,90 @@
+# config.yml
+
+# This is for the max entries per trigger, per player.
+# Once the limit is hit, it will remove the oldest entry first.
+# Lower this if you have perfomance problems.
+# Raise if you would like to save more information about players.
+
+max_entries_per_section: 10
+
+# Reloading the SAAI plugin each time can effect perfomance.
+# this allows for a delay between a new preference being stored.
+# and the plugin reloading, if another preference is added during the wait
+# it will not add another reload.
+# Lower this if you notice changes arent taking place quick enough.
+# Raise this if you notice lag when SAAI is reloading.
+
+reload_Delay_Ticks: 100
+
+# This is for catching random messages for memory
+# Choose a value between 0 and 1
+# Example: `random_Selection_Probability: 0.05` is a 5% chance of each message being saved 
+
+random_Selection_Probability: 0.05
+
+# Triggers are the words/phrases that are caught to store in documents.
+# Uses regex.
+# the format is `section: "regex format"`
+
+preferenceTriggers:
+  likes: "i (like|enjoy|love|prefer|adore) (\\w+(\\s\\w+)*)"
+  dislikes: "i (dislike|hate|detest|don't (like|enjoy)) (\\w+(\\s\\w+)*)"
+  games: "i (play|am going to (go )?play|gonna (go )?play) (\\w+(\\s\\w+)*)"
+  favorites: "my favorite(?! block)|the best(?! block) (\\w+(\\s\\w+)*)"
+  friends: "my friend(s)? (\\w+(\\s\\w+)*)"
+  hobbies: "i (am into|like to|enjoy (doing|)) (\\w+(\\s\\w+)*)|my (hobby|hobbies) (is|are) (\\w+(\\s\\w+)*)"
+  goals: "i (want to|am aiming for|am trying to|dream of|goal is) (\\w+(\\s\\w+)*)"
+  blocks: "my favorite block is (\\w+(\\s\\w+)*)|i (like|love) the block (\\w+(\\s\\w+)*)"
+  item: "my favorite item is (\\w+(\\s\\w+)*)|i (like|love) the item (\\w+(\\s\\w+)*)"
+  music: "i (love listening to|listen to|enjoy (the band|my favorite artist is)) (\\w+(\\s\\w+)*)"
+  food: "my favorite food (\\w+(\\s\\w+)*)|i (love|enjoy|like) eating (\\w+(\\s\\w+)*)|i want some (\\w+(\\s\\w+)*)"
+  mods_plugins: "my favorite mod is (\\w+(\\s\\w+)*)|i (use|like|enjoy) the mod (\\w+(\\s\\w+)*)"
+  nickname: "call me (\\w+(\\s\\w+)*)|my (nickname|name|new name) is (\\w+(\\s\\w+)*)|my nick is (\\w+(\\s\\w+)*)"
+  pronouns: "my pronouns are (\\w+(\\s\\w+)*)"
+  stupidMemes: ".*\\b(owo|uwu|oink|lmao|lmfao|:3)\\b.*"
+  mood: "happy|sad|angry|excited|bored|anxious|relaxed|curious|frustrated|joyful|content|confused|hopeful|grateful|lonely|tired|energetic|motivated|disappointed|inspired|optimistic|pessimistic|nostalgic|melancholic|overwhelmed|playful|reflective|restless|secure|nervous|cheerful|mellow|rested|irritated|empowered|depressed|indifferent|altruistic|satisfied|dismissive|uncertain|thoughtful|daring|frightened|awkward|embarrassed|enthusiastic|rejuvenated|apathy"
+  extra: "nullnotfortextbutforaddingextraslongtexttostopanyonefromaccidentlytypingit"
+
+# Triggers that can only support a single option.
+# Instead of adding new lines, it will delete the old line. aka replace.
+# The name must be exactly the same as above.
+
+singleEntryOptions:
+  - "nickname"
+  - "pronouns"
+  - "mood"
+
+# Sections are called into the prompt each message sent to the bot.
+# Name must be the same as above, but capitalized.
+# Example: "section: "some message goes here"
+# Output: some message goes here: preference1 preference2
+
+preferenceSections:
+  Mood: "Current mood, try to help if needed"
+  Nickname: "Nickname"
+  Likes: "Likes"
+  Dislikes: "Dislikes"
+  Friends: "Friends"
+  Pronouns: "Pronouns"
+  StupidMemes: "Sometimes Respond with"
+  Extra: "Extra information, respond"
+
+# Nicknames that the bot shouldnt be allowed to set.
+# If the message is a direct message to the bot, it may still say it was set by the bot.
+# But should not be set by this plugin.
+
+forbiddenNicknames:
+  - admin
+  - mod
+  - owner
+  - player
+  - guest
+  - default
+  - nobody
+  - hearty
+  - heartMC
+  - sirbacons
+  - bacon
+  - staff
+  - boss
+  - moderator

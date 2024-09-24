@@ -1,0 +1,16 @@
+main: ${PACKAGE}.${NAME}
+name: ${NAME}
+version: "${VERSION}"
+api-version: "1.16"
+author: Hearty
+description: Stores data talked about by users
+commands:
+  aipd:
+    description: "Reloads the preference triggers configuration"
+    usage: "/<command>"
+    aliases: 
+      - reload
+permissions:
+  aipd.*:
+    description: "Grants all other permissions"
+    default: false
