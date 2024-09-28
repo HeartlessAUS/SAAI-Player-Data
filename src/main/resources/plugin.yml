@@ -1,16 +1,33 @@
 main: ${PACKAGE}.${NAME}
+depend: [ServerAssistantAI]
+softdepend: [DiscordSRV]
 name: ${NAME}
 version: "${VERSION}"
-api-version: "1.16"
+api-version: "1.21.1"
 author: Hearty
 description: Stores data talked about by users
 commands:
   aipd:
-    description: "Reloads the preference triggers configuration"
+    description: "Ai Player Data"
     usage: "/<command>"
-    aliases: 
-      - reload
+    aliases: []
+    permission: aipd.reload
+  savedinfo:
+    description: View your saved information
+    usage: /<command>
+    permission: aipd.viewinfo
 permissions:
   aipd.*:
     description: "Grants all other permissions"
-    default: false
+    default: op
+    children:
+      aipd.reload: true
+      aipd.viewinfo: true
+
+  aipd.reload:
+    description: Allows the player to reload the plugin configuration.
+    default: op
+
+  aipd.viewinfo:
+    description: View your saved information
+    default: true

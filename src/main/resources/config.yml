@@ -1,5 +1,14 @@
 # config.yml
 
+debug_mode: false
+
+
+
+#################################
+# Player Data Triggers Section  #
+#################################
+enable_triggers: true
+
 # This is for the max entries per trigger, per player.
 # Once the limit is hit, it will remove the oldest entry first.
 # Lower this if you have perfomance problems.
@@ -27,25 +36,27 @@ random_Selection_Probability: 0.05
 # the format is `section: "regex format"`
 
 preferenceTriggers:
-  likes: "i (like|enjoy|love|prefer|adore) (\\w+(\\s\\w+)*)"
-  dislikes: "i (dislike|hate|detest|don't (like|enjoy)) (\\w+(\\s\\w+)*)"
-  games: "i (play|am going to (go )?play|gonna (go )?play) (\\w+(\\s\\w+)*)"
-  favorites: "my favorite(?! block)|the best(?! block) (\\w+(\\s\\w+)*)"
-  friends: "my friend(s)? (\\w+(\\s\\w+)*)"
-  hobbies: "i (am into|like to|enjoy (doing|)) (\\w+(\\s\\w+)*)|my (hobby|hobbies) (is|are) (\\w+(\\s\\w+)*)"
-  goals: "i (want to|am aiming for|am trying to|dream of|goal is) (\\w+(\\s\\w+)*)"
-  blocks: "my favorite block is (\\w+(\\s\\w+)*)|i (like|love) the block (\\w+(\\s\\w+)*)"
-  item: "my favorite item is (\\w+(\\s\\w+)*)|i (like|love) the item (\\w+(\\s\\w+)*)"
-  music: "i (love listening to|listen to|enjoy (the band|my favorite artist is)) (\\w+(\\s\\w+)*)"
-  food: "my favorite food (\\w+(\\s\\w+)*)|i (love|enjoy|like) eating (\\w+(\\s\\w+)*)|i want some (\\w+(\\s\\w+)*)"
-  mods_plugins: "my favorite mod is (\\w+(\\s\\w+)*)|i (use|like|enjoy) the mod (\\w+(\\s\\w+)*)"
-  nickname: "call me (\\w+(\\s\\w+)*)|my (nickname|name|new name) is (\\w+(\\s\\w+)*)|my nick is (\\w+(\\s\\w+)*)"
-  pronouns: "my pronouns are (\\w+(\\s\\w+)*)"
-  stupidMemes: ".*\\b(owo|uwu|oink|lmao|lmfao|:3)\\b.*"
-  mood: "happy|sad|angry|excited|bored|anxious|relaxed|curious|frustrated|joyful|content|confused|hopeful|grateful|lonely|tired|energetic|motivated|disappointed|inspired|optimistic|pessimistic|nostalgic|melancholic|overwhelmed|playful|reflective|restless|secure|nervous|cheerful|mellow|rested|irritated|empowered|depressed|indifferent|altruistic|satisfied|dismissive|uncertain|thoughtful|daring|frightened|awkward|embarrassed|enthusiastic|rejuvenated|apathy"
-  extra: "nullnotfortextbutforaddingextraslongtexttostopanyonefromaccidentlytypingit"
+  likes: "(?i)i\\s*(like|enjoy|love|prefer|adore)\\s*(?!to\\s*\\w+|the\\s*color|the\\s*block|the\\s*item)\\s*(\\w+(\\s\\w+)*)"
+  dislikes: "(?i)i\\s*(dislike|hate|detest|don't\\s*(like|enjoy))\\s*(?!to\\s*\\w+|the\\s*color|the\\s*block|the\\s*item)\\s*(\\w+(\\s\\w+)*)"
+  games: "(?i)i\\s*(play|am going to (go )?play|gonna (go )?play)\\s*(\\w+(\\s\\w+)*)"
+  favorites: "(?i)(my favorite(?!\\s*(color|block|item|food))|the best(?!\\s*(color|block|item|food)))\\s*(\\w+(\\s\\w+)*)"
+  friends: "(?i)my friend(s)?\\s+(\\w+(\\s\\w+)*)"
+  hobbies: "(?i)i\\s*(am into|like to|enjoy(\\s*doing)?)\\s*(\\w+(\\s\\w+)*)|my\\s*(hobby|hobbies)\\s*(is|are)\\s*(\\w+(\\s\\w+)*)"
+  goals: "(?i)i\\s*(want to|am aiming for|am trying to|dream of|goal is)\\s*(\\w+(\\s\\w+)*)"
+  blocks: "(?i)(my favorite block is|i\\s*(like|love)\\s*the block)\\s*(\\w+(\\s\\w+)*)"
+  item: "(?i)(my favorite item is|i\\s*(like|love)\\s*the item)\\s*(\\w+(\\s\\w+)*)"
+  music: "(?i)i\\s*(love listening to|listen to|enjoy\\s*(the band|my favorite artist is))\\s*(\\w+(\\s\\w+)*)"
+  food: "(?i)(my favorite food|i\\s*(love|enjoy|like)\\s*(to\\s*eat|eating)|i want some)\\s*(\\w+(\\s\\w+)*)"
+  mods_plugins: "(?i)(my favorite mod is|i\\s*(use|like|enjoy)\\s*the mod)\\s*(\\w+(\\s\\w+)*)"
+  nickname: "(?i)(call me|my (nickname|name|new name) is|my nick is)\\s*(\\w+(\\s\\w+)*)"
+  pronouns: "(?i)my pronouns are\\s*(\\w+(\\s\\w+)*)"
+  stupidMemes: "(?i).*\\b(owo|uwu|oink|lmao|lmfao|:3)\\b.*"
+  mood: "(?i)(happy|sad|angry|excited|bored|anxious|relaxed|curious|frustrated|joyful|content|confused|hopeful|grateful|lonely|tired|energetic|motivated|disappointed|inspired|optimistic|pessimistic|nostalgic|melancholic|overwhelmed|playful|reflective|restless|secure|nervous|cheerful|mellow|rested|irritated|empowered|depressed|indifferent|altruistic|satisfied|dismissive|uncertain|thoughtful|daring|frightened|awkward|embarrassed|enthusiastic|rejuvenated|apathy)"
+  color: "(?i)(my favorite color is|my favorite color's|i (like|love|prefer) (the\\s*)?color|the color (i (like|love|prefer)|is))\\s*([a-zA-Z]+)"
+  extra: "notForAddingIntoRegexWillNotShowUpIfITypeALOT"
+  response_type: "notForAddingIntoRegexWillNotShowUpIfITypeALOT"
 
-# Triggers that can only support a single option.
+# Above triggers that can only support a single option.
 # Instead of adding new lines, it will delete the old line. aka replace.
 # The name must be exactly the same as above.
 
@@ -53,10 +64,18 @@ singleEntryOptions:
   - "nickname"
   - "pronouns"
   - "mood"
+  - "color"
+
+
+#################################
+#  Player Data Prompts Section  #
+#################################
+enable_prompts: true
 
 # Sections are called into the prompt each message sent to the bot.
 # Name must be the same as above, but capitalized.
-# Example: "section: "some message goes here"
+# Supports custom sections that do not have triggers. 
+# Example: "Section: "some message goes here"
 # Output: some message goes here: preference1 preference2
 
 preferenceSections:
@@ -67,7 +86,9 @@ preferenceSections:
   Friends: "Friends"
   Pronouns: "Pronouns"
   StupidMemes: "Sometimes Respond with"
-  Extra: "Extra information, respond"
+  Extra: "Extra information"
+  Response_type: "!IMPORTANT! Respond"
+  Color:  "Favorite Color"
 
 # Nicknames that the bot shouldnt be allowed to set.
 # If the message is a direct message to the bot, it may still say it was set by the bot.
@@ -88,3 +109,54 @@ forbiddenNicknames:
   - staff
   - boss
   - moderator
+
+
+
+#################################
+#    Player Commands Section    #
+#################################
+enable_commands: true
+
+# A list of commands the bot can perform for a player via console
+# the first section is the command name, this is what the plugin will search for in messages.
+# the second section is for the command it will execute.
+# Allowed Placeholders: %player%.
+# Example: spawn: spawn %player%.
+# Result: player says spawn, the console outputs /spawn playername.
+
+allowedCommands:
+  spawn: cmi spawn %player%
+# kill: kill %player%
+# murder: kill %player%
+# eliminate: kill %player%
+# slay: kill %player%
+
+complexCommands: []
+# kick: kick %user% %reason%
+
+requiresAdmin: []
+# - kick
+
+
+# Regex format for the commands to check if a player is asking for assistance.
+# And not just saying the word. Used to not execute commands unless under specific reasons.
+# example: spawn: "\\b(help me get to)\\b".
+# result: "help me get to spawn" = true, "i like the spawn" = false.
+
+assistanceRegex:
+  spawn: "(?i)(\\b(help|can\\s+someone|how\\s+do\\s+i|what\\s+is|can\\s+you|could\\s+you)\\s+i\\s+go\\s+to\\s+spawn\\b\\s*\\??)|(\\b(take|teleport|tp|warp)\\s+(to|me|me\\s+to)\\b\\s*\\??)"
+# kill: "\\b(?:can|could|would|might)\\s+(?:you|u|ya)\\s+(?:kill)\\s+(?:me|myself)\\b\\s*\\??"
+# murder: "\\b(?:can|could|would|might)\\s+(?:you|u|ya)\\s+(?:murder)\\s+(?:me|myself)\\b\\s*\\??"
+# eliminate: "\\b(?:can|could|would|might)\\s+(?:you|u|ya)\\s+(?:eliminate)\\s+(?:me|myself)\\b\\s*\\??"
+# slay: "\\b(?:can|could|would|might)\\s+(?:you|u|ya)\\s+(?:slay)\\s+(?:me|myself)\\b\\s*\\??"
+# kick: "\\b(?:kick)\\b\\s*\\??"
+
+
+#################################
+#      DiscordSRV Section       #
+#################################
+enable_discordsrv_hook: true
+
+discordToMinecraftNames:
+  hearty: HeartMC
+  discordName2: minecraftName2

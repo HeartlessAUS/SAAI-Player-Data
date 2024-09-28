@@ -2,6 +2,7 @@ package com.hearty.appenddatatoprompt;
 
 import dev.bluetree242.serverassistantai.api.events.PreMinecraftHandleEvent;
 import dev.bluetree242.serverassistantai.api.events.PostMinecraftHandleEvent;
+
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -27,6 +28,7 @@ public class AppendDataToPrompt implements Listener {
     private String originalContent = ""; // Store the original content before appending
     private final Map<String, String> preferenceSections = new HashMap<>();
     private final ConfigManager configManager;
+    private boolean debugEnabled;
 
     public AppendDataToPrompt(File documentFolder, File promptFolder, JavaPlugin plugin, ConfigManager configManager) {
         this.documentFolder = documentFolder;
@@ -35,22 +37,22 @@ public class AppendDataToPrompt implements Listener {
         this.configManager = configManager;
 
         // Initialize preference sections from config
-        initializePreferenceSections();
+        initializeConfig();
     }
     public void reloadSections() {
         ClearExisting();
         initializeConfig();  // Initialize preference triggers
     }
-    private void initializePreferenceSections() {
-        // Load preference sections from config
-        preferenceSections.putAll(configManager.getPreferenceSections());
-    }
+
     public void ClearExisting() {
         this.preferenceSections.clear();
     }
+
     public void initializeConfig() {
         this.preferenceSections.putAll(configManager.getPreferenceSections());
+        this.debugEnabled = configManager.getDebugMode();
     }
+
     @EventHandler
     public void onPreMinecraftHandle(PreMinecraftHandleEvent event) {
         Player player = event.getPlayer();
@@ -66,7 +68,7 @@ public class AppendDataToPrompt implements Listener {
         backupOriginalContent();
 
         // Build the message to append to the file
-        StringBuilder message = new StringBuilder("Below is some information about " + playerName + ", who you are currently talking to. you should choose how to respond based on this infomation:\n");
+        StringBuilder message = new StringBuilder("\n\nBelow is some information about " + playerName + ", who you are currently talking to. you should respond based on this infomation:\n");
 
         // Loop through preference sections
         for (Map.Entry<String, String> entry : preferenceSections.entrySet()) {
@@ -74,7 +76,10 @@ public class AppendDataToPrompt implements Listener {
             String sectionMessage = entry.getValue();  // This is the section name
             String preferenceData = extractPreferenceSection(playerFile, playerName, preferenceType);
         
-            message.append(sectionMessage).append(": ").append(preferenceData != null ? preferenceData : "Not set").append("\n");
+            // Only append sections that have data
+            if (preferenceData != null && !preferenceData.trim().isEmpty()) {
+                message.append(sectionMessage).append(": ").append(preferenceData).append("\n");
+            }
         }
 
         // Append the formatted message to the file
@@ -127,7 +132,7 @@ public class AppendDataToPrompt implements Listener {
                 } else if (line.startsWith("**") && isInSection) {
                     break;  // Stop if we encounter the next section
                 } else if (isInSection) {
-                    preferenceData.append(line).append(" ");
+                    preferenceData.append(line).append(", ");
                 }
             }
         } catch (IOException e) {

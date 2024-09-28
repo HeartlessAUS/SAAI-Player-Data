@@ -1,6 +1,7 @@
 package com.hearty.playerchatlistener;
 
 import dev.bluetree242.serverassistantai.api.events.PreMinecraftHandleEvent;
+import dev.bluetree242.serverassistantai.api.events.PreDiscordHandleEvent;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.event.EventHandler;
@@ -37,12 +38,11 @@ public class PlayerChatListener implements Listener {
     private int reloadDelayTicks;
     private double randomSelectionProbability;
     private BukkitTask reloadTask = null;
-
+    private boolean debugEnabled;
 
     // Map of preference types and their corresponding regex patterns
     private final Map<String, Pattern> preferenceTriggers = new HashMap<>();
 
-    // A list of not allowed nicknames
     public PlayerChatListener(File documentFolder, JavaPlugin plugin, ConfigManager configManager) {
         this.documentFolder = documentFolder;
         this.plugin = plugin;
@@ -63,8 +63,9 @@ public class PlayerChatListener implements Listener {
         this.forbiddenNicknames = configManager.getForbiddenNicknames(); // Load forbidden nicknames
         this.singleEntryOptions = configManager.getSingleEntryOptions(); // load single entry options
         this.maxEntriesPerSection = configManager.getMaxEntriesPerSection(); // Load the max entries config
-        this.reloadDelayTicks = configManager.reloadDelayTicks(); // Load the max entries config
-        this.randomSelectionProbability = configManager.randomSelectionProbability(); // Load the max entries config
+        this.reloadDelayTicks = configManager.getDelayTicks(); // Load the max entries config
+        this.randomSelectionProbability = configManager.getRandomSelectionProbability(); // Load the max entries config
+        this.debugEnabled = configManager.getDebugMode();
     }
 
     @EventHandler
@@ -90,6 +91,20 @@ public class PlayerChatListener implements Listener {
         }
     }
 
+    // New event handling for Discord messages
+    /*
+    @EventHandler
+    public void onPreDiscordHandle(PreDiscordHandleEvent event) {
+        String message = preprocessMessage(event.getMessage().toString());
+        String discordName = event.getRequester().toString();
+        String playerName = configManager.getDiscordToMinecraftNames().getOrDefault(discordName, discordName);       
+        boolean preferenceMatched = processMessageForPreferences(playerName, message);
+
+        if (!preferenceMatched) {
+            handleRandomMessageSave(playerName, message);
+        }
+    }*/
+
     private String preprocessMessage(String message) {
         return message.toLowerCase().replace("'", "").trim();
     }
@@ -114,7 +129,7 @@ public class PlayerChatListener implements Listener {
         String foundPreference = matcher.group(1) != null ? matcher.group(1) : matcher.group(4);
         // For blocks, validate the block name
         if (!isValidBlock(foundPreference)) {
-            logger.log(Level.WARNING, "Invalid block name: {0}", foundPreference);
+            if (debugEnabled){ logger.log(Level.WARNING, "Invalid block name: " + foundPreference, foundPreference); }
         } else {
             storePlayerData(playerName, entry.getKey(), message);
         }
@@ -122,9 +137,9 @@ public class PlayerChatListener implements Listener {
     private void handleRandomMessageSave(String playerName, String message) {
         if (random.nextDouble() < randomSelectionProbability) {
             storePlayerData(playerName, "Randomly Saved Messages", message);
-            logger.log(Level.INFO, "Randomly added message for player '{0}': {1}", new Object[]{playerName, message});
+            if (debugEnabled){ logger.log(Level.INFO, "Randomly added message for player '" + playerName + "': " + message, new Object[]{playerName, message}); }
         } else {
-            //logger.log(Level.INFO, "No preference found for message: {0}", message);
+            if (debugEnabled){ logger.log(Level.INFO, "No preference found for message:" + message, message); }
         }
     }
 
@@ -154,14 +169,14 @@ public class PlayerChatListener implements Listener {
         String[] words = trimmedMessage.split("\\s+"); // Split by whitespace
         for (String word : words) {
             if (forbiddenNicknames.contains(word)) {
-                logger.log(Level.WARNING, "Nickname '{0}' is not allowed for player '{1}'", new Object[]{word, playerName});
+                if (debugEnabled){ logger.log(Level.WARNING, "The Nickname " + word + " is not allowed", new Object[]{word, playerName}); }
                 return; // Do not update the nickname if any word is forbidden
             }
         }
 
         preferences.get(type).setLength(0);  // Clear previous entry
         preferences.get(type).append(trimmedMessage).append("\n");
-        logger.log(Level.INFO, "Updated {0} for player '{1}'", new Object[]{type, playerName});
+        if (debugEnabled){ logger.log(Level.INFO, "Updated " + type + " for player " + playerName, new Object[]{type, playerName}); }
     }
 
     private void removeConflictingPreferences(Map<String, StringBuilder> preferences, String type, String message) {
@@ -180,12 +195,28 @@ public class PlayerChatListener implements Listener {
 
         // Check if the limit is reached
         if (existingEntries.length >= maxEntriesPerSection) {
-            logger.log(Level.WARNING, "Max entries reached for {0} for player '{1}'. Consider removing an entry.", new Object[]{type, playerName});
-            // Optional: Remove the oldest entry (first entry)
-            StringBuilder updatedSection = new StringBuilder();
-            for (int i = 1; i < existingEntries.length; i++) {  // Skip the first entry
-                updatedSection.append(existingEntries[i]).append("\n");
+            if (debugEnabled) {
+                logger.log(Level.WARNING, "Max entries reached for " + type + " for player " + playerName, new Object[]{type, playerName});
             }
+
+            // Optional: Remove the oldest entry, but skip those starting with '~'
+            StringBuilder updatedSection = new StringBuilder();
+            int removedEntries = 0;
+        
+            for (int i = 0; i < existingEntries.length; i++) {
+                String entry = existingEntries[i];
+            
+                // Skip entries starting with '~'
+                if (!entry.startsWith("~")) {
+                    removedEntries++;
+                    if (removedEntries > 1) {  // Only remove one non-* entry (the oldest)
+                        updatedSection.append(entry).append("\n");
+                    }
+                } else {
+                    updatedSection.append(entry).append("\n");
+                }
+            }
+
             section.setLength(0); // Clear the section
             section.append(updatedSection); // Add updated entries
         }
@@ -193,13 +224,19 @@ public class PlayerChatListener implements Listener {
         // Now check if the new message can be added
         if (!section.toString().contains(message)) {
             section.append(message).append("\n");
-            logger.log(Level.INFO, "Added {0} for player '{1}'", new Object[]{type, playerName});
+            if (debugEnabled) {
+                logger.log(Level.INFO, "Added {0} for player '{1}'", new Object[]{type, playerName});
+            }
             return true;  // Return true if a new preference was added
         } else {
-            logger.log(Level.INFO, "{0} already exists for player '{1}'", new Object[]{type, playerName});
+            if (debugEnabled) {
+                logger.log(Level.INFO, "{0} already exists for player '{1}'", new Object[]{type, playerName});
+            }
             return false;  // Return false if the preference already exists
         }
     }
+
+
     // Load the existing preferences from the player's file
     private Map<String, StringBuilder> loadExistingPreferences(File playerFile, String playerName) {
         Map<String, StringBuilder> preferences = new HashMap<>();
@@ -242,7 +279,7 @@ public class PlayerChatListener implements Listener {
             for (String type : preferences.keySet()) {
                 writer.write("**" + playerName + " " + capitalize(type) + "**\n" + preferences.get(type).toString());
             }
-            // logger.log(Level.INFO, "Updated preferences for player: " + playerName);
+            if (debugEnabled){ logger.log(Level.INFO, "Updated preferences for player: " + playerName); }
             // Schedule the reload command to run on the main server thread
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to write preferences for player: " + playerName, e);
@@ -265,6 +302,7 @@ public class PlayerChatListener implements Listener {
         Bukkit.getScheduler().runTask(plugin, new Runnable() {
             @Override
             public void run() {
+                if (debugEnabled){ logger.log(Level.INFO, "Beginning Reload of SAAI"); }
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "ai reload");
             }
         });

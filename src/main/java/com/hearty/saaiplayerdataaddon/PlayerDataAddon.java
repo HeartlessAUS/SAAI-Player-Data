@@ -5,6 +5,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
+import github.scarsz.discordsrv.DiscordSRV;
+import github.scarsz.discordsrv.api.ListenerPriority;
+import github.scarsz.discordsrv.api.Subscribe;
+import github.scarsz.discordsrv.api.events.*;
+import github.scarsz.discordsrv.dependencies.jda.api.entities.TextChannel;
+import github.scarsz.discordsrv.dependencies.jda.api.entities.User;
+import github.scarsz.discordsrv.util.DiscordUtil;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -13,6 +21,8 @@ import java.util.logging.Level;
 
 import com.hearty.playerchatlistener.PlayerChatListener;
 import com.hearty.appenddatatoprompt.AppendDataToPrompt;
+import com.hearty.playercommandhandler.PlayerCommandHandler;
+import com.hearty.savedinfocommandhandler.SavedInfoCommandHandler;
 import com.hearty.configmanager.ConfigManager;
 
 /**
@@ -22,42 +32,73 @@ import com.hearty.configmanager.ConfigManager;
  */
 public class PlayerDataAddon extends JavaPlugin {
     private ConfigManager configManager;
+
     private PlayerChatListener playerChatListener;
     private AppendDataToPrompt appendDataToPrompt;
+    private PlayerCommandHandler playerCommandHandler;
+    private SavedInfoCommandHandler savedInfoCommandHandler;
 
-    private File saaiDocumentsFolder;
     private final Logger logger = Logger.getLogger("SAAI-PlayerData");
+    private File saaiDocumentsFolder;
+
+    public boolean triggersEnabled;
+    public boolean promptsEnabled;
+    public boolean commandsEnabled;
+    public boolean discordEnabled;
+
     @Override
     public void onEnable() {
-        // Initialize the SAAI Documents folder
-
-        File saaiDocumentsFolder = new File(getDataFolder().getParentFile(), "ServerAssistantAI/documents/players");
-        File saaiPromptFolder = new File(getDataFolder().getParentFile(), "ServerAssistantAI/minecraft");
-        if (!saaiDocumentsFolder.exists()) {
-            saaiDocumentsFolder.mkdirs();
-        }
 
         // Initialize the configuration manager
         configManager = new ConfigManager(this);
+        initializeConfigStates();
 
-        playerChatListener = new PlayerChatListener(saaiDocumentsFolder, this, configManager); // Store the instance
-        getServer().getPluginManager().registerEvents(playerChatListener, this);
-        appendDataToPrompt = new AppendDataToPrompt(saaiDocumentsFolder, saaiPromptFolder, this, configManager);
-        getServer().getPluginManager().registerEvents(appendDataToPrompt, this);
+        File saaiPlayerDocumentsFolder = new File(getDataFolder().getParentFile(), "ServerAssistantAI/documents/players");
+        if (!saaiPlayerDocumentsFolder.exists()) {
+            saaiPlayerDocumentsFolder.mkdirs();
+        }
+
+        if(triggersEnabled){
+            playerChatListener = new PlayerChatListener(saaiPlayerDocumentsFolder, this, configManager);
+            getServer().getPluginManager().registerEvents(playerChatListener, this);
+        }
+        
+        if(promptsEnabled){
+            File saaiPromptFolder = new File(getDataFolder().getParentFile(), "ServerAssistantAI/minecraft");
+            appendDataToPrompt = new AppendDataToPrompt(saaiPlayerDocumentsFolder, saaiPromptFolder, this, configManager);
+            getServer().getPluginManager().registerEvents(appendDataToPrompt, this);
+        }
+
+        if(commandsEnabled){
+            playerCommandHandler = new PlayerCommandHandler(this, configManager);
+            getServer().getPluginManager().registerEvents(playerCommandHandler, this);
+        
+            savedInfoCommandHandler = new SavedInfoCommandHandler(saaiPlayerDocumentsFolder, this, configManager);
+            getCommand("savedinfo").setExecutor(savedInfoCommandHandler); // Registering the command
+        }
     }
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (command.getName().equalsIgnoreCase("aipd")) {
-            configManager.loadConfig(); // Reload the config
-            this.playerChatListener.reloadPreferences();
-            this.appendDataToPrompt.reloadSections();
-            // Optionally reload the preference triggers in PlayerChatListener
-            // Note: You might need to pass a new instance or modify the existing one
-            // Example: playerChatListener.reloadPreferences(configManager.getPreferenceTriggers());
+            if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
 
-            sender.sendMessage("Preferences have been reloaded.");
-            return true;
+                configManager.loadConfig(); // Reload the config
+                initializeConfigStates();
+
+                this.playerChatListener.reloadPreferences();
+                this.appendDataToPrompt.reloadSections();
+                this.playerCommandHandler.reloadCommands();
+
+                sender.sendMessage("Plugin has reloaded.");
+                return true;
+            }
         }
         return false;
+    }
+    public void initializeConfigStates(){
+        triggersEnabled = configManager.getStateForTriggers();
+        promptsEnabled = configManager.getStateForPrompts();
+        commandsEnabled = configManager.getStateForCommands();
+        discordEnabled = configManager.getStateForDiscord();
     }
 }
